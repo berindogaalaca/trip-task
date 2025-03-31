@@ -3,42 +3,71 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import FormProvider from "@/components/hook-form/form-provider";
-import RHFTextField from "@/components/hook-form/rhf-text-field";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { User } from "@/types/user";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { loginSchema, LoginValues } from "@/app/api/v1/task/login/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useUserLogin } from "@/hooks/use-user";
+import { useRouter } from "next/navigation";
+import { LogoIcon, UserIcon } from "@/components/icons";
 
 export default function LoginPageView() {
   const { toast } = useToast();
+  const login = useUserLogin();
+  const router = useRouter();
 
-  const defaultValues: Omit<User, "id" | "createdAt" | "updatedAt"> = {
-    user_id: "",
+  const defaultValues = {
+    userId: "",
     password: "",
   };
-  const methods = useForm<LoginValues>({
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
-  const { handleSubmit } = methods;
+  const onSubmit = (values: LoginValues) => {
+    login.mutate(values, {
+      onSuccess: (data) => {
+        if (data.success == true) {
+          console.log(data);
 
-  const onSubmit = handleSubmit((values) => {
-    toast({
-      title: "Hoesgeldiniz",
-      variant: "destructive",
-      duration: 3000,
+          toast({
+            title: "Hoşgeldiniz",
+            description: "Başarıyla giriş yaptınız",
+            duration: 3000,
+          });
+        } else {
+          toast({
+            title: "Giriş Başarısız",
+            description: "Kimlik doğrulama hatası",
+            variant: "destructive",
+            duration: 3000,
+          });
+        }
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Hata",
+          description: error.response?.data?.success || "Bir hata oluştu",
+          variant: "destructive",
+          duration: 3000,
+        });
+      },
     });
-  });
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white rounded-t-3xl">
       <Card className="w-full h-full max-w-sm bg-[#f2f2f2] pt-6 pb-0">
         <div className="flex flex-col items-center space-y-8 px-8 py-12">
           <div className="mb-4">
-            <OrcaLogo />
+            <LogoIcon />
           </div>
 
           <div className="w-full space-y-6">
@@ -46,25 +75,67 @@ export default function LoginPageView() {
               LOG IN
             </h1>
 
-            <FormProvider methods={methods} onSubmit={onSubmit}>
-              <div className="grid grid-cols-1 gap-6 mt-6">
-                <RHFTextField name="first_name" placeholder="User ID" />
-                <RHFTextField name="last_name" placeholder="Password" />
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <UserIcon className="w-5 h-5" />
+                  </div>
+                  <Controller
+                    name="userId"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        placeholder="User ID"
+                        className="pl-10 bg-white shadow-sm"
+                      />
+                    )}
+                  />
+                  {errors.userId && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.userId.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Controller
+                    name="password"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="password"
+                        placeholder="Password"
+                        className="bg-white shadow-sm"
+                      />
+                    )}
+                  />
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
               </div>
-            </FormProvider>
 
-            <div className="text-left">
-              <Link
-                href="/forgot-password"
-                className="text-gray-700 hover:underline text-sm"
+              <div className="text-left">
+                <Link
+                  href="/forgot-password"
+                  className="text-gray-700 hover:underline text-sm"
+                >
+                  Forgot Password
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 bg-orange-400 hover:bg-orange-500 text-white"
               >
-                Forgot Password
-              </Link>
-            </div>
-
-            <Button className="w-full h-12 bg-orange-400 hover:bg-orange-500 text-white">
-              Log In
-            </Button>
+                Log In
+              </Button>
+            </form>
           </div>
         </div>
         <div className="mt-8 bg-white w-full rounded-t-3xl px-8 py-6">
@@ -85,99 +156,6 @@ export default function LoginPageView() {
           </div>
         </div>
       </Card>
-    </div>
-  );
-}
-
-function UserIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <circle cx="12" cy="8" r="5" />
-      <path d="M20 21a8 8 0 1 0-16 0" />
-    </svg>
-  );
-}
-
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  );
-}
-
-function OrcaLogo() {
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative h-16 w-64">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl font-bold">
-            <span className="text-sky-400">ORCA</span>
-          </span>
-        </div>
-        <div className="absolute left-8 top-1">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 8C9.79 8 8 9.79 8 12C8 14.21 9.79 16 12 16C14.21 16 16 14.21 16 12C16 9.79 14.21 8 12 8Z"
-              fill="#666666"
-            />
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
-              fill="#666666"
-            />
-          </svg>
-        </div>
-        <div className="absolute right-8 top-1">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="#666666"
-              strokeWidth="2"
-              fill="none"
-            />
-          </svg>
-        </div>
-        <div className="absolute top-10 w-full text-center">
-          <span className="text-orange-400 text-sm">Softwares</span>
-        </div>
-      </div>
     </div>
   );
 }
