@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const passwordMatch = await compare(password, userLogin.password);
 
     if (!passwordMatch) {
-      return ApiResponse.error("Geçersiz şifre", null, 401);
+      return ApiResponse.error("Geçersiz şifre", null);
     }
     const { password: _, ...userWithoutPassword } = userLogin;
 
@@ -59,16 +59,10 @@ export async function POST(request: NextRequest) {
       { expiresIn: "7d" }
     );
 
-    const response = NextResponse.json({
-      success: true,
-      message: "Giriş başarılı",
-      data: {
-        user: userWithoutPassword,
-        token,
-      },
+    return ApiResponse.success("Giriş başarılı", {
+      user: userWithoutPassword,
+      token,
     });
-
-    return response;
   } catch (error) {
     console.error("Login hatası:", {
       error,

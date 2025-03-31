@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
 export class ApiResponse {
-  static success(message: string, status = 200) {
+  static success(message: string, data: any = null, status = 200) {
     return NextResponse.json(
       {
         success: true,
-        data: { message },
+        message,
+        data,
       },
       { status }
     );
@@ -15,7 +16,8 @@ export class ApiResponse {
     return NextResponse.json(
       {
         success: false,
-        data: { message, errors },
+        message,
+        errors,
       },
       { status }
     );
