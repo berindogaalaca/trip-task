@@ -1,5 +1,3 @@
-"use client";
-
 import { CSSProperties } from "react";
 import { UseFormReturn, FormProvider as Form } from "react-hook-form";
 

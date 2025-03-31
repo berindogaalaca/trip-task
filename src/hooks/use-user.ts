@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { LoginValues } from "@/app/api/v1/task/login/schema";
 import axiosInstance from "@/lib/axios";
 import Cookies from "js-cookie";
@@ -15,8 +15,6 @@ export const useUserLogin = () => {
     },
     onSuccess: (data) => {
       if (data.success) {
-        console.log("Token created:", data.data.token);
-        console.log("Setting cookie with expires:", 7);
         if (data.data?.token) {
           Cookies.set("token", data.data.token, {
             expires: 7,
@@ -24,16 +22,42 @@ export const useUserLogin = () => {
             sameSite: "lax",
           });
         }
-        console.log("Cookie after setting:", Cookies.get("token"));
-        setTimeout(() => {
-          console.log("Cookie after 2 seconds:", Cookies.get("token"));
-        }, 2000);
         if (data.data?.user) {
           sessionStorage.setItem("user", JSON.stringify(data.data.user));
         }
 
-        router.push("/");
+        router.push("/user/profile");
       }
+    },
+  });
+};
+
+export const useBankDetail = () => {
+  return useQuery({
+    queryKey: ["bankDetail"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(endpoints.bankDetail);
+      return data;
+    },
+  });
+};
+
+export const useCompany = () => {
+  return useQuery({
+    queryKey: ["company"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(endpoints.companyDetail);
+      return data;
+    },
+  });
+};
+
+export const useContactDetail = () => {
+  return useQuery({
+    queryKey: ["contactDetail"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(endpoints.contactDetail);
+      return data;
     },
   });
 };

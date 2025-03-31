@@ -59,7 +59,7 @@ export default function RHFTextField<TFormValues extends FieldValues>({
                 type={type}
                 placeholder={placeholder}
                 disabled={disabled}
-                className={`bg-white shadow-sm ${icon ? "pl-10" : ""}`}
+                className={`bg-white shadow-xl ${icon ? "pl-10" : ""}`}
                 style={{
                   boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   backgroundColor: "white",

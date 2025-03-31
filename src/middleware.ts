@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const validRoutes = ["/auth/login", "/user/profile"];
+
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  console.log("Middleware path:", path);
+  if (!validRoutes.includes(path)) {
+    console.log("Route not found, redirecting to 404");
+    return NextResponse.rewrite(new URL("/404", request.url));
+  }
 
   if (path === "/auth/login") {
     const token = request.cookies.get("token");
-    console.log("Login page, token exists:", !!token);
 
     if (token) {
-      console.log("Redirecting to home");
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/user/profile", request.url));
     }
   }
 
